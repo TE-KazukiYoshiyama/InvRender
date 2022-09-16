@@ -6,9 +6,9 @@ torchvision
 pillow
 imageio
 imageio-ffmpeg
+scikit-build
 opencv-python
 pyhocon
 ipdb
 tqdm
 tensorboardX
-json

@@ -8,6 +8,14 @@
 - Set up the python environment
 
 ```sh
+docker build \
+   --build-arg http_proxy=${http_proxy} \
+   -t inv_render \
+   -f docker/Dockerfile .                                      
+```
+
+
+```sh
 conda create -n invrender python=3.7
 conda activate invrender
 
