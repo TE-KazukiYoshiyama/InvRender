@@ -12,3 +12,7 @@ pyhocon
 ipdb
 tqdm
 tensorboardX
+opencv-python
+PyMCubes
+trimesh
+scipy

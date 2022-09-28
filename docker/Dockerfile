@@ -12,7 +12,8 @@ RUN apt-get install -y \
   python3-pip \
   libsm6 \
   libxrender1 \
-  libxext-dev
+  libxext-dev \
+  libgl1-mesa-dev
 
 
 RUN pip3 install --upgrade pip
