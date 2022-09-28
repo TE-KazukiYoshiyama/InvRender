@@ -24,7 +24,7 @@ class IllumTrainRunner():
         self.max_niters = kwargs['max_niters']
         self.GPU_INDEX = kwargs['gpu_index']
 
-        self.expname = 'Illum-' + kwargs['expname']
+        self.expname = 'Illum-' + f"scan{kwargs['scan_id']}"
         
         if kwargs['is_continue'] and kwargs['timestamp'] == 'latest':
             if os.path.exists(os.path.join('../',kwargs['exps_folder_name'],self.expname)):
@@ -77,7 +77,7 @@ class IllumTrainRunner():
         
         print('Loading data ...')
         self.train_dataset = utils.get_class(self.conf.get_string('train.dataset_class'))(
-                                kwargs['data_split_dir'], kwargs['frame_skip'], split='train')
+                                kwargs['data_dir'], scan_id=kwargs['scan_id'])
         print('Finish loading data ...')
 
         self.train_dataloader = torch.utils.data.DataLoader(self.train_dataset,
@@ -135,7 +135,7 @@ class IllumTrainRunner():
                 os.path.join(old_checkpnts_dir, self.vis_scheduler_params_subdir, str(kwargs['checkpoint']) + ".pth"))
             self.vis_scheduler.load_state_dict(data["scheduler_state_dict"])
 
-        geo_dir = os.path.join('../',kwargs['exps_folder_name'], 'IDR-' + kwargs['expname'])
+        geo_dir = os.path.join('../',kwargs['exps_folder_name'], 'IDR-' + f"scan{kwargs['scan_id']}")
         if os.path.exists(geo_dir):
             timestamps = os.listdir(geo_dir)
             timestamp = sorted(timestamps)[-1] # using the newest training result

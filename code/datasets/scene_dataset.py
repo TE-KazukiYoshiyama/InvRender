@@ -9,14 +9,12 @@ class SceneDataset(torch.utils.data.Dataset):
     """Dataset for a class of objects, where each datapoint is a SceneInstanceDataset."""
 
     def __init__(self,
-                 train_cameras,
                  data_dir,
-                 img_res,
+                 img_res=(1200, 1600),  # (H, W)!
                  scan_id=0,
-                 cam_file=None
                  ):
 
-        self.instance_dir = os.path.join('../data', data_dir, 'scan{0}'.format(scan_id))
+        self.instance_dir = os.path.join(data_dir, 'scan{0}'.format(scan_id))
 
         self.total_pixels = img_res[0] * img_res[1]
         self.img_res = img_res
@@ -24,7 +22,6 @@ class SceneDataset(torch.utils.data.Dataset):
         assert os.path.exists(self.instance_dir), "Data directory is empty"
 
         self.sampling_idx = None
-        self.train_cameras = train_cameras
 
         image_dir = '{0}/image'.format(self.instance_dir)
         image_paths = sorted(utils.glob_imgs(image_dir))
@@ -34,8 +31,6 @@ class SceneDataset(torch.utils.data.Dataset):
         self.n_images = len(image_paths)
 
         self.cam_file = '{0}/cameras.npz'.format(self.instance_dir)
-        if cam_file is not None:
-            self.cam_file = '{0}/{1}'.format(self.instance_dir, cam_file)
 
         camera_dict = np.load(self.cam_file)
         scale_mats = [camera_dict['scale_mat_%d' % idx].astype(np.float32) for idx in range(self.n_images)]
@@ -53,7 +48,7 @@ class SceneDataset(torch.utils.data.Dataset):
         self.rgb_images = []
         for path in image_paths:
             rgb = rend_util.load_rgb(path)
-            rgb = rgb.reshape(3, -1).transpose(1, 0)
+            rgb = rgb.reshape(-1, 3)
             self.rgb_images.append(torch.from_numpy(rgb).float())
 
         self.object_masks = []
@@ -71,9 +66,10 @@ class SceneDataset(torch.utils.data.Dataset):
         uv = uv.reshape(2, -1).transpose(1, 0)
 
         sample = {
-            "object_mask": self.object_masks[idx],
             "uv": uv,
             "intrinsics": self.intrinsics_all[idx],
+            "pose": self.pose_all[idx],
+            "object_mask": self.object_masks[idx],
         }
 
         ground_truth = {
@@ -84,9 +80,6 @@ class SceneDataset(torch.utils.data.Dataset):
             ground_truth["rgb"] = self.rgb_images[idx][self.sampling_idx, :]
             sample["object_mask"] = self.object_masks[idx][self.sampling_idx]
             sample["uv"] = uv[self.sampling_idx, :]
-
-        if not self.train_cameras:
-            sample["pose"] = self.pose_all[idx]
 
         return idx, sample, ground_truth
 
@@ -112,42 +105,3 @@ class SceneDataset(torch.utils.data.Dataset):
             self.sampling_idx = None
         else:
             self.sampling_idx = torch.randperm(self.total_pixels)[:sampling_size]
-
-    def get_scale_mat(self):
-        return np.load(self.cam_file)['scale_mat_0']
-
-    def get_gt_pose(self, scaled=False):
-        # Load gt pose without normalization to unit sphere
-        camera_dict = np.load(self.cam_file)
-        world_mats = [camera_dict['world_mat_%d' % idx].astype(np.float32) for idx in range(self.n_images)]
-        scale_mats = [camera_dict['scale_mat_%d' % idx].astype(np.float32) for idx in range(self.n_images)]
-
-        pose_all = []
-        for scale_mat, world_mat in zip(scale_mats, world_mats):
-            P = world_mat
-            if scaled:
-                P = world_mat @ scale_mat
-            P = P[:3, :4]
-            _, pose = rend_util.load_K_Rt_from_P(None, P)
-            pose_all.append(torch.from_numpy(pose).float())
-
-        return torch.cat([p.float().unsqueeze(0) for p in pose_all], 0)
-
-    def get_pose_init(self):
-        # get noisy initializations obtained with the linear method
-        cam_file = '{0}/cameras_linear_init.npz'.format(self.instance_dir)
-        camera_dict = np.load(cam_file)
-        scale_mats = [camera_dict['scale_mat_%d' % idx].astype(np.float32) for idx in range(self.n_images)]
-        world_mats = [camera_dict['world_mat_%d' % idx].astype(np.float32) for idx in range(self.n_images)]
-
-        init_pose = []
-        for scale_mat, world_mat in zip(scale_mats, world_mats):
-            P = world_mat @ scale_mat
-            P = P[:3, :4]
-            _, pose = rend_util.load_K_Rt_from_P(None, P)
-            init_pose.append(pose)
-        init_pose = torch.cat([torch.Tensor(pose).float().unsqueeze(0) for pose in init_pose], 0).cuda()
-        init_quat = rend_util.rot_to_quat(init_pose[:, :3, :3])
-        init_quat = torch.cat([init_quat, init_pose[:, :3, 3]], 1)
-
-        return init_quat

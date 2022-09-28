@@ -25,7 +25,7 @@ class MaterialTrainRunner():
         self.max_niters = kwargs['max_niters']
         self.GPU_INDEX = kwargs['gpu_index']
 
-        self.expname = 'Mat-' + kwargs['expname']
+        self.expname = 'Mat-' + f"scan{kwargs['scan_id']}"
 
         if kwargs['is_continue'] and kwargs['timestamp'] == 'latest':
             if os.path.exists(os.path.join('../',kwargs['exps_folder_name'],self.expname)):
@@ -75,7 +75,7 @@ class MaterialTrainRunner():
 
         print('Loading data ...')
         self.train_dataset = utils.get_class(self.conf.get_string('train.dataset_class'))(
-                                kwargs['data_split_dir'], kwargs['frame_skip'], split='train')
+                                kwargs['data_dir'], scan_id=kwargs['scan_id'])
         print('Finish loading data ...')
 
         self.train_dataloader = torch.utils.data.DataLoader(self.train_dataset,
@@ -121,7 +121,7 @@ class MaterialTrainRunner():
                 os.path.join(old_checkpnts_dir, self.sg_scheduler_params_subdir, str(kwargs['checkpoint']) + ".pth"))
             self.sg_scheduler.load_state_dict(data["scheduler_state_dict"])
 
-        illum_dir = os.path.join('../',kwargs['exps_folder_name'], 'Illum-' + kwargs['expname'])
+        illum_dir = os.path.join('../',kwargs['exps_folder_name'], 'Illum-' + f"scan{kwargs['scan_id']}")
         if os.path.exists(illum_dir):
             timestamps = os.listdir(illum_dir)
             timestamp = sorted(timestamps)[-1] # using the newest training result

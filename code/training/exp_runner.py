@@ -13,11 +13,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--conf', type=str, default='')
     parser.add_argument('--exps_folder_name', type=str, default='exps')
-    parser.add_argument('--expname', type=str, default='')
     parser.add_argument('--trainstage', type=str, default='IDR', help='')
     
-    parser.add_argument('--data_split_dir', type=str, default='')
-    parser.add_argument('--frame_skip', type=int, default=1, help='skip frame when training')
+    parser.add_argument('--data_dir', type=str, default='../DTU', help='path to DTU dataset')
+    parser.add_argument('--scan_id', type=int, default=69, help='scan id')
 
     parser.add_argument('--batch_size', type=int, default=1, help='input batch size')
     # parser.add_argument('--nepoch', type=int, default=2000, help='number of epochs to train for')
@@ -47,9 +46,8 @@ if __name__ == '__main__':
 
     trainrunner = runder_dict[opt.trainstage](conf=opt.conf,
                                             exps_folder_name=opt.exps_folder_name,
-                                            expname=opt.expname,
-                                            data_split_dir=opt.data_split_dir,
-                                            frame_skip=opt.frame_skip,
+                                            data_dir=opt.data_dir,
+                                            scan_id=opt.scan_id, 
                                             batch_size=opt.batch_size,
                                             max_niters=opt.max_niter,
                                             is_continue=opt.is_continue,

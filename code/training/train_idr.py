@@ -24,7 +24,7 @@ class IDRTrainRunner():
         self.max_niters = kwargs['max_niters']
         self.GPU_INDEX = kwargs['gpu_index']
 
-        self.expname = 'IDR-' + kwargs['expname']
+        self.expname = 'IDR-' + f"scan{kwargs['scan_id']}"
         
         if kwargs['is_continue'] and kwargs['timestamp'] == 'latest':
             if os.path.exists(os.path.join('../',kwargs['exps_folder_name'],self.expname)):
@@ -73,7 +73,7 @@ class IDRTrainRunner():
 
         print('Loading data ...')
         self.train_dataset = utils.get_class(self.conf.get_string('train.dataset_class'))(
-                                kwargs['data_split_dir'], kwargs['frame_skip'], split='train')
+                                kwargs['data_dir'], scan_id=kwargs['scan_id'])
         print('Finish loading data ...')
 
         self.train_dataloader = torch.utils.data.DataLoader(self.train_dataset,
