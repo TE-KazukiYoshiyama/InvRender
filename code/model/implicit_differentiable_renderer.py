@@ -386,6 +386,7 @@ class IDRNetwork(nn.Module):
             random_xi_diffuse_albedo[surface_mask] = ret['random_xi_diffuse_albedo']
             random_xi_roughness[surface_mask] = ret['random_xi_roughness'].expand(-1, 3)
 
+        # trainstage=Material
         return_obj.update({
             'bg_rgb': bg_rgb_values,
             'sg_rgb': sg_rgb_values,
