@@ -4,6 +4,7 @@ log/
 ckpts/
 results/
 *.ply
+*.obj
 *.vol
 
 __pycache__/
@@ -17,3 +18,4 @@ __pycache__/
 exps/
 relits/
 *.sh
+DTU
