@@ -22,44 +22,44 @@ conda activate invrender
 pip install -r requirement.txt
 ```
 
-- Download our example synthetic dataset from [Google Drive](https://drive.google.com/file/d/1wWWu7EaOxtVq8QNalgs6kDqsiAm7xsRh/view?usp=sharing)
+- Dowload [DTUMVS dataset](https://www.dropbox.com/sh/5tam07ai8ch90pf/AADniBT3dmAexvm_J1oL__uoa) used in [IDR work](https://github.com/lioryariv/idr)
 
 
 ## Run the code
 
 #### Training
 
-Taking the scene `hotdog` as an example, the training process is as follows.
+Taking the scene `scan69` as an example, the training process is as follows.
 
 1. Optimize geometry and outgoing radiance field from multi-view images. (Same as [IDR](https://github.com/lioryariv/idr))
 
    ```sh
    cd code
-   python training/exp_runner.py --conf confs_sg/default.conf \
-                                 --data_split_dir ../Synthetic4Relight/hotdog \
-                                 --expname hotdog \
-                                 --trainstage IDR \
-                                 --gpu 1
+   python3 training/exp_runner.py --conf confs_sg/dtumvs.conf \
+                                  --data_dir ../DTU \
+                                  --scan_id 69 \
+                                  --trainstage IDR \
+                                  --gpu 1
    ```
 
 2. Draw sample rays above surface points to train the indirect illumination and visibility MLP.
 
    ```sh
-   python training/exp_runner.py --conf confs_sg/default.conf \
-                                 --data_split_dir ../Synthetic4Relight/hotdog \
-                                 --expname hotdog \
-                                 --trainstage Illum \
-                                 --gpu 1
+   python3 training/exp_runner.py --conf confs_sg/dtumvs.conf \
+                                  --data_dir ../DTU \
+                                  --scan_id 69 \
+                                  --trainstage Illum \
+                                  --gpu 1
    ```
    
 3. Jointly optimize diffuse albedo, roughness and direct illumination.
 
    ```sh
-   python training/exp_runner.py --conf confs_sg/default.conf \
-                                 --data_split_dir ../Synthetic4Relight/hotdog \
-                                 --expname hotdog \
-                                 --trainstage Material \
-                                 --gpu 1
+   python3 training/exp_runner.py --conf confs_sg/dtumvs.conf \
+                                  --data_dir ../DTU \
+                                  --scan_id 69 \
+                                  --trainstage Material \
+                                  --gpu 1
    ```
 
 #### Relighting
@@ -67,12 +67,23 @@ Taking the scene `hotdog` as an example, the training process is as follows.
 - Generate videos under novel illumination.
 
   ```sh
-  python scripts/relight.py --conf confs_sg/default.conf \
-                            --data_split_dir ../Synthetic4Relight/hotdog \
-                            --expname hotdog \
-                            --timestamp latest \
-                            --gpu 1
+  python3 scripts/relight.py --conf confs_sg/dtumvs.conf \
+                             --data_dir ../DTU \
+                             --scan_id 69 \
+                             --timestamp latest \
+                             --gpu 1
   ```
+
+#### Extracting
+
+- Extract mesh with material
+
+  ```sh
+  python3 scripts/extract.py --conf confs_sg/dtumvs.conf \
+                             --scan_id 69 \
+                             --timestamp latest \
+                             --gpu 1
+  ```  
 
 ## Citation
 
